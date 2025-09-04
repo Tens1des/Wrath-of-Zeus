@@ -11,7 +11,9 @@ import SwiftUI
 struct Wrath_of_ZeusApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationView {
+                MainMenuView()
+            }
         }
     }
 }

@@ -37,12 +37,12 @@ struct SettingsAlertView: View {
                     
                     // Системный слайдер музыки с кастомными элементами
                     Slider(value: $musicVolume, in: 0...1)
-                        .frame(width: 200)
+                        .frame(width: 150)
                         .onAppear {
                             // Настройка кастомного thumb
-                            UISlider.appearance().setThumbImage(UIImage(named: "slider_thumb"), for: .normal)
+                            UISlider.appearance().setThumbImage(UIImage(named: "slider_thumb")?.resize(to: CGSize(width: 20, height: 15)), for: .normal)
                             // Настройка кастомной заполненной части
-                            UISlider.appearance().setMinimumTrackImage(UIImage(named: "slider_fill"), for: .normal)
+                            UISlider.appearance().setMinimumTrackImage(UIImage(named: "slider_fill")?.resize(to: CGSize(width: 200, height: 20)), for: .normal)
                         }
                 }
                 
@@ -55,12 +55,12 @@ struct SettingsAlertView: View {
                     
                     // Системный слайдер звука с кастомными элементами
                     Slider(value: $soundVolume, in: 0...1)
-                        .frame(width: 200)
+                        .frame(width: 150)
                         .onAppear {
                             // Настройка кастомного thumb
-                            UISlider.appearance().setThumbImage(UIImage(named: "slider_thumb"), for: .normal)
+                            UISlider.appearance().setThumbImage(UIImage(named: "slider_thumb")?.resize(to: CGSize(width: 12, height: 12)), for: .normal)
                             // Настройка кастомной заполненной части
-                            UISlider.appearance().setMinimumTrackImage(UIImage(named: "slider_fill"), for: .normal)
+                            UISlider.appearance().setMinimumTrackImage(UIImage(named: "slider_fill")?.resize(to: CGSize(width: 100, height: 50)), for: .normal)
                         }
                 }
                 
@@ -78,11 +78,21 @@ struct SettingsAlertView: View {
                 Image("settings_panel")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-            )
+            ).frame(width: 250 ,height: 150)
         }
     }
 }
 
 #Preview {
     SettingsAlertView(isPresented: .constant(true))
+}
+
+// Расширение для изменения размера UIImage
+extension UIImage {
+    func resize(to size: CGSize) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        defer { UIGraphicsEndImageContext() }
+        draw(in: CGRect(origin: .zero, size: size))
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
 }
