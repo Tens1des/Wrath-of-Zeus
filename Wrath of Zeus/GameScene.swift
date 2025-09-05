@@ -6,7 +6,7 @@ class GameScene: SKScene, ObservableObject {
     
     override func didMove(to view: SKView) {
         // Настройка сцены
-        backgroundColor = SKColor.black
+        backgroundColor = SKColor.clear // Прозрачный фон, так как фон установлен в ContentView
         
         // Создание и настройка текста "Hello!"
         let helloLabel = SKLabelNode(fontNamed: "Arial-BoldMT")

@@ -28,8 +28,11 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Фоновый цвет или изображение (опционально)
-            Color.black.edgesIgnoringSafeArea(.all)
+            // Фоновое изображение игры
+            Image("game_bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .ignoresSafeArea(.all)
             
             // Игровая сцена
             if let scene = gameScene {

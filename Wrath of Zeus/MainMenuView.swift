@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct MainMenuView: View {
-    @State private var navigateToGame = false
+    @State private var showTutorial = false
     @State private var showSettings = false
+    @State private var showShop = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -71,26 +72,25 @@ struct MainMenuView: View {
                     
                     // Центральная кнопка Play с отступом сверху
                     VStack(spacing: 8) {
-                        
+                      
                         
                         Button(action: {
-                            navigateToGame = true
+                            showTutorial = true
                         }) {
                             Image("play_button")
                                 .resizable()
                                 .frame(width: 150, height: 150)
                         }
                     }
-                    .padding(.top, -150)
+                    .padding(.top, -100)
                     
                     // Уменьшенное расстояние между кнопками
                     Spacer()
-                        .frame(height: 20)
+                        .frame(height: 40)
                     
                     // Нижняя кнопка Shop
                     Button(action: {
-                        // Действие для кнопки магазина
-                        print("Магазин нажат")
+                        showShop = true
                     }) {
                         Image("shop_button")
                             .resizable()
@@ -100,8 +100,11 @@ struct MainMenuView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $navigateToGame) {
-            ContentView()
+        .fullScreenCover(isPresented: $showTutorial) {
+            TutorialView()
+        }
+        .sheet(isPresented: $showShop) {
+            ShopView()
         }
         .overlay(
             // Алерт настроек
