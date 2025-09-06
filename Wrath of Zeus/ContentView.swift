@@ -25,50 +25,44 @@ struct SKViewRepresentable: UIViewRepresentable {
 
 struct ContentView: View {
     @State private var gameScene: GameScene?
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ZStack {
-            // Фоновое изображение игры
-            Image("game_bg")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .ignoresSafeArea(.all)
-            
-            // Игровая сцена
-            if let scene = gameScene {
-                GameSceneView(scene: scene)
-            } else {
-                // Показываем загрузочный индикатор, пока сцена не готова
-                ProgressView()
+        GeometryReader { geometry in
+            ZStack {
+                // Игровая сцена (фон теперь в GameScene)
+                if let scene = gameScene {
+                    GameSceneView(scene: scene)
+                } else {
+                    // Показываем загрузочный индикатор, пока сцена не готова
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black)
+                }
+                
+                // Игровой интерфейс поверх сцены
+                GameUIView()
             }
-        }
-        .onAppear {
-            // Инициализируем сцену при появлении представления
-            if gameScene == nil {
-                let scene = GameScene()
-                scene.scaleMode = .aspectFill
-                gameScene = scene
+            .onAppear {
+                // Инициализируем сцену при появлении представления
+                if gameScene == nil {
+                    let scene = GameScene(size: geometry.size)
+                    scene.scaleMode = .aspectFill
+                    gameScene = scene
+                }
             }
+            .navigationBarHidden(true)
         }
-        .navigationBarHidden(true)
     }
 }
 
-// Отдельное представление для игровой сцены и интерфейса
+// Отдельное представление для игровой сцены
 struct GameSceneView: View {
     @ObservedObject var scene: GameScene
     
     var body: some View {
-        ZStack {
-            // Игровая сцена
-            SKViewRepresentable(scene: scene)
-                .ignoresSafeArea()
-            
-            // Игровой интерфейс поверх сцены
-            VStack {
-                // Здесь будет игровой интерфейс сцены
-            }
-        }
+        SKViewRepresentable(scene: scene)
+            .ignoresSafeArea()
     }
 }
 
