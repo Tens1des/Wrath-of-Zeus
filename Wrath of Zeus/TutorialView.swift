@@ -9,8 +9,8 @@ import SwiftUI
 
 struct TutorialView: View {
     @Environment(\.dismiss) private var dismiss
+    @Binding var showGame: Bool // Binding для запуска игры
     @State private var currentTutorialIndex = 0
-    @State private var navigateToGame = false
     
     private let tutorialImages = ["tutorial1", "tutorial2", "tutorial3", "tutorial4", "tutorial5"]
     
@@ -47,9 +47,6 @@ struct TutorialView: View {
                 .padding(.bottom, 50)
             }
         }
-        .fullScreenCover(isPresented: $navigateToGame) {
-            ContentView()
-        }
     }
     
     private func nextTutorial() {
@@ -57,11 +54,12 @@ struct TutorialView: View {
             currentTutorialIndex += 1
         } else {
             // Последний туториал - переходим к игре
-            navigateToGame = true
+            dismiss() // Закрываем туториал
+            showGame = true // Запускаем игру
         }
     }
 }
 
 #Preview {
-    TutorialView()
+    TutorialView(showGame: .constant(false))
 }

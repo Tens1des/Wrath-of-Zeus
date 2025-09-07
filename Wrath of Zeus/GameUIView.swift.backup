@@ -26,10 +26,9 @@ struct GameUIView: View {
                             
                             HStack(spacing: 4) {
                                 Text("\(gameScene.totalCoins)")
-                                    .font(.system(size: 13, weight: .bold))
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(.white)
                                     .shadow(color: .black, radius: 1, x: 1, y: 1)
-                                    .padding(.leading, 20) // Сдвигаем текст правее
                             }
                         }
                         .padding(.leading, 16)

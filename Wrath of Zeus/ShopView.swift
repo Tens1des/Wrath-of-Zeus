@@ -9,13 +9,7 @@ import SwiftUI
 
 struct ShopView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    // Состояния активных скинов
-    @State private var classicInUse: Bool = true
-    @State private var fireInUse: Bool = false
-    @State private var iceInUse: Bool = false
-    @State private var lightningInUse: Bool = false
-    @State private var darkInUse: Bool = false
+    @ObservedObject var shopManager = ShopManager.shared
     
     var body: some View {
         ZStack {
@@ -27,7 +21,7 @@ struct ShopView: View {
             
             // Контент магазина
             VStack {
-                
+                // Убираем панель с монетами
                 
                 // ScrollView с панелями
                 ScrollView {
@@ -60,11 +54,10 @@ struct ShopView: View {
                             // Горизонтальный скролл со скинами поверх панели
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 15) {
-                                    SkinItem(skinName: "Classic", skinIcon: "skin1_icon", skinPrice: 200, isOwned: true, isInUse: $classicInUse)
-                                    SkinItem(skinName: "Fire", skinIcon: "skin2_icon", skinPrice: 500, isInUse: $fireInUse)
-                                    SkinItem(skinName: "Ice", skinIcon: "skin3_icon", skinPrice: 300, isInUse: $iceInUse)
-                                    SkinItem(skinName: "Lightning", skinIcon: "skin4_icon", skinPrice: 400, isInUse: $lightningInUse)
-                                    SkinItem(skinName: "Dark", skinIcon: "skin5_icon", skinPrice: 600, isInUse: $darkInUse)
+                                    SkinItem(skinName: "Classic", skinIcon: "skin1_icon", skinNumber: 1)
+                                    SkinItem(skinName: "Fire", skinIcon: "skin2_icon", skinNumber: 2)
+                                    SkinItem(skinName: "Ice", skinIcon: "skin3_icon", skinNumber: 3)
+                                    SkinItem(skinName: "Lightning", skinIcon: "skin4_icon", skinNumber: 4)
                                 }
                                 .padding(.leading, 60) // Отступ слева для первого элемента
                                 .padding(.trailing, 60) // Отступ справа для последнего элемента
@@ -79,48 +72,14 @@ struct ShopView: View {
                 .clipped()
                 
                 // Кнопка закрытия
-             
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image("close_button")
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                }
                 .padding(.bottom, 20)
-            }
-        }
-        .onChange(of: classicInUse) { newValue in
-            if newValue {
-                fireInUse = false
-                iceInUse = false
-                lightningInUse = false
-                darkInUse = false
-            }
-        }
-        .onChange(of: fireInUse) { newValue in
-            if newValue {
-                classicInUse = false
-                iceInUse = false
-                lightningInUse = false
-                darkInUse = false
-            }
-        }
-        .onChange(of: iceInUse) { newValue in
-            if newValue {
-                classicInUse = false
-                fireInUse = false
-                lightningInUse = false
-                darkInUse = false
-            }
-        }
-        .onChange(of: lightningInUse) { newValue in
-            if newValue {
-                classicInUse = false
-                fireInUse = false
-                iceInUse = false
-                darkInUse = false
-            }
-        }
-        .onChange(of: darkInUse) { newValue in
-            if newValue {
-                classicInUse = false
-                fireInUse = false
-                iceInUse = false
-                lightningInUse = false
             }
         }
     }

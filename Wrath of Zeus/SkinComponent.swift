@@ -11,19 +11,8 @@ import SwiftUI
 struct SkinItem: View {
     let skinName: String
     let skinIcon: String
-    let skinPrice: Int
-    @State private var isOwned: Bool
-    @Binding var isInUse: Bool
-    @State private var userCoins: Int = 500
-    
-    // Инициализатор с параметрами по умолчанию
-    init(skinName: String, skinIcon: String, skinPrice: Int, isOwned: Bool = false, isInUse: Binding<Bool>) {
-        self.skinName = skinName
-        self.skinIcon = skinIcon
-        self.skinPrice = skinPrice
-        self._isOwned = State(initialValue: isOwned)
-        self._isInUse = isInUse
-    }
+    let skinNumber: Int
+    @ObservedObject var shopManager = ShopManager.shared
     
     var body: some View {
         VStack(spacing: 8) {
@@ -44,24 +33,21 @@ struct SkinItem: View {
             
             // Кнопка в зависимости от состояния
             Button(action: {
-                if !isOwned && userCoins >= skinPrice {
+                if !shopManager.isSkinOwned(skinNumber) && shopManager.canBuySkin(skinNumber: skinNumber) {
                     // Покупка скина
-                    userCoins -= skinPrice
-                    isOwned = true
-                } else if isOwned && !isInUse {
-                    // Выбор скина (начать использовать)
-                    isInUse = true
-                } else if isOwned && isInUse {
-                    // Снять скина с использования
-                    isInUse = false
+                    shopManager.buySkin(skinNumber: skinNumber)
+                } else if shopManager.isSkinOwned(skinNumber) && !shopManager.isSkinInUse(skinNumber) {
+                    // Выбор скина (начать использовать) - автоматически снимает другие скины
+                    shopManager.useSkin(skinNumber: skinNumber)
                 }
+                // Если скин уже используется - ничего не делаем (кнопка "In Use")
             }) {
                 Image(buttonImageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 30)
             }
-            .disabled(!isOwned && userCoins < skinPrice)
+            .disabled(!shopManager.isSkinOwned(skinNumber) && !shopManager.canBuySkin(skinNumber: skinNumber))
         }
         .padding(12)
         .frame(width: 120, height: 200)
@@ -75,11 +61,11 @@ struct SkinItem: View {
     
     // Выбор изображения кнопки в зависимости от состояния
     private var buttonImageName: String {
-        if isInUse {
+        if shopManager.isSkinInUse(skinNumber) {
             return "inUse_button"  // Скин используется
-        } else if isOwned {
+        } else if shopManager.isSkinOwned(skinNumber) {
             return "use_button"    // Скин куплен, но не используется
-        } else if userCoins >= skinPrice {
+        } else if shopManager.canBuySkin(skinNumber: skinNumber) {
             return "buy_button"    // Можно купить
         } else {
             return "gray_button"   // Недостаточно денег

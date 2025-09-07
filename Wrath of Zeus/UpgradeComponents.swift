@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-// MARK: - Компонент улучшения силы выстрела
+// MARK: - Компонент улучшения силы выстрела (добавляет заряд)
 struct ShotPowerUpgrade: View {
+    @ObservedObject var shopManager = ShopManager.shared
     @State private var level: Int = 1
-    @State private var upgradeCost: Int = 400
-    @State private var userCoins: Int = 500 // Примерное количество монет пользователя
+    private let upgradeCost: Int = 400
     
     var body: some View {
         VStack(spacing: 8) {
@@ -27,7 +27,7 @@ struct ShotPowerUpgrade: View {
                                 .stroke(Color.black, lineWidth: 2)
                         )
                     
-                    Text("Lv.\(level)")
+                    Text("Lv.\(shopManager.shotPowerLevel)")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.black)
                 }
@@ -47,21 +47,16 @@ struct ShotPowerUpgrade: View {
             
             Spacer()
             
-            // Кнопка улучшения (без текста)
+            // Кнопка улучшения
             Button(action: {
-                // Логика улучшения
-                if userCoins >= upgradeCost {
-                    userCoins -= upgradeCost
-                    level += 1
-                    upgradeCost += 100 // Увеличиваем стоимость
-                }
+                shopManager.buyShotPower()
             }) {
-                Image(userCoins >= upgradeCost ? "buy_button" : "gray_button")
+                Image(shopManager.canBuySkill() ? "buy_button" : "gray_button")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 35)
             }
-            .disabled(userCoins < upgradeCost)
+            .disabled(!shopManager.canBuySkill())
         }
         .padding(16)
         .frame(width: 120, height: 200)
@@ -74,11 +69,10 @@ struct ShotPowerUpgrade: View {
     }
 }
 
-// MARK: - Компонент улучшения перезарядки
+// MARK: - Компонент улучшения перезарядки (ускоряет на 0.5с)
 struct ReloadUpgrade: View {
-    @State private var level: Int = 1
-    @State private var upgradeCost: Int = 400
-    @State private var userCoins: Int = 500 // Примерное количество монет пользователя
+    @ObservedObject var shopManager = ShopManager.shared
+    private let upgradeCost: Int = 400
     
     var body: some View {
         VStack(spacing: 8) {
@@ -94,7 +88,7 @@ struct ReloadUpgrade: View {
                                 .stroke(Color.black, lineWidth: 2)
                         )
                     
-                    Text("Lv.\(level)")
+                    Text("Lv.\(shopManager.reloadSpeedLevel)")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.black)
                 }
@@ -107,28 +101,23 @@ struct ReloadUpgrade: View {
                 .frame(width: 70, height: 70)
             
             // Название улучшения
-            Text("Reload")
+            Text("Reload Speed")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.white)
                 .shadow(color: .black, radius: 2)
             
             Spacer()
             
-            // Кнопка улучшения (без текста)
+            // Кнопка улучшения
             Button(action: {
-                // Логика улучшения
-                if userCoins >= upgradeCost {
-                    userCoins -= upgradeCost
-                    level += 1
-                    upgradeCost += 100 // Увеличиваем стоимость
-                }
+                shopManager.buyReloadSpeed()
             }) {
-                Image(userCoins >= upgradeCost ? "buy_button" : "gray_button")
+                Image(shopManager.canBuySkill() ? "buy_button" : "gray_button")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 35)
             }
-            .disabled(userCoins < upgradeCost)
+            .disabled(!shopManager.canBuySkill())
         }
         .padding(16)
         .frame(width: 120, height: 200)
@@ -141,11 +130,9 @@ struct ReloadUpgrade: View {
     }
 }
 
-// MARK: - Компонент улучшения количества отскоков
+// MARK: - Компонент улучшения количества отскоков (убираем, так как не нужен)
 struct BounceQuantityUpgrade: View {
-    @State private var level: Int = 1
-    @State private var upgradeCost: Int = 400
-    @State private var userCoins: Int = 500 // Примерное количество монет пользователя
+    @ObservedObject var shopManager = ShopManager.shared
     
     var body: some View {
         VStack(spacing: 8) {
@@ -154,14 +141,14 @@ struct BounceQuantityUpgrade: View {
                 Spacer()
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.yellow)
+                        .fill(Color.gray)
                         .frame(width: 40, height: 20)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(Color.black, lineWidth: 2)
                         )
                     
-                    Text("Lv.\(level)")
+                    Text("Lv.1")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.black)
                 }
@@ -174,28 +161,23 @@ struct BounceQuantityUpgrade: View {
                 .frame(width: 70, height: 70)
             
             // Название улучшения
-            Text("Bounce Quant.")
+            Text("Coming Soon")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.white)
                 .shadow(color: .black, radius: 2)
             
             Spacer()
             
-            // Кнопка улучшения (без текста)
+            // Кнопка улучшения (заблокирована)
             Button(action: {
-                // Логика улучшения
-                if userCoins >= upgradeCost {
-                    userCoins -= upgradeCost
-                    level += 1
-                    upgradeCost += 100 // Увеличиваем стоимость
-                }
+                // Заблокировано
             }) {
-                Image(userCoins >= upgradeCost ? "buy_button" : "gray_button")
+                Image("gray_button")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 35)
             }
-            .disabled(userCoins < upgradeCost)
+            .disabled(true)
         }
         .padding(16)
         .frame(width: 120, height: 200)

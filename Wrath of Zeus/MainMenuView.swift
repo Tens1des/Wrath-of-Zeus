@@ -11,6 +11,10 @@ struct MainMenuView: View {
     @State private var showTutorial = false
     @State private var showSettings = false
     @State private var showShop = false
+    @State private var showGame = false // Добавляем состояние для игры
+    
+    // Используем менеджер магазина
+    @ObservedObject var shopManager = ShopManager.shared
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,10 +35,11 @@ struct MainMenuView: View {
                                 .frame(width: 80, height: 35)
                             
                             HStack(spacing: 4) {
-                                Text("25")
-                                    .font(.system(size: 16, weight: .bold))
+                                Text("\(shopManager.totalCoins)")
+                                    .font(.system(size: 13, weight: .bold))
                                     .foregroundColor(.white)
                                     .shadow(color: .black, radius: 1, x: 1, y: 1)
+                                    .padding(.leading, 20) // Сдвигаем текст правее, как в игре
                             }
                         }
                         .padding(.leading, 16)
@@ -48,7 +53,7 @@ struct MainMenuView: View {
                                 .foregroundColor(.yellow)
                                 .shadow(color: .black, radius: 1, x: 1, y: 1)
                             
-                            Text("1557")
+                            Text("\(getHighScore())")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black, radius: 1, x: 1, y: 1)
@@ -100,8 +105,23 @@ struct MainMenuView: View {
                 }
             }
         }
+        .onAppear {
+            loadGameStats()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            // Обновляем данные при возвращении в приложение
+            loadGameStats()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .restartGame)) { _ in
+            // При получении уведомления о перезапуске - запускаем туториал
+            print("Получено уведомление о перезапуске - запускаем туториал")
+            showTutorial = true
+        }
         .fullScreenCover(isPresented: $showTutorial) {
-            TutorialView()
+            TutorialView(showGame: $showGame) // Передаем binding для игры
+        }
+        .fullScreenCover(isPresented: $showGame) {
+            ContentView() // Показываем игру напрямую
         }
         .sheet(isPresented: $showShop) {
             ShopView()
@@ -114,6 +134,18 @@ struct MainMenuView: View {
                 }
             }
         )
+    }
+    
+    private func loadGameStats() {
+        // Загружаем рекорд из UserDefaults
+        let defaults = UserDefaults.standard
+        let highScore = defaults.integer(forKey: "highScore")
+        print("MainMenu - High Score loaded: \(highScore)")
+    }
+    
+    private func getHighScore() -> Int {
+        let defaults = UserDefaults.standard
+        return defaults.integer(forKey: "highScore")
     }
 }
 

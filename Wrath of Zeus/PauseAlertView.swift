@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PauseAlertView: View {
     @Binding var isPresented: Bool
+    var gameScene: GameScene // Добавляем игровую сцену
     @State private var musicVolume: Double = 0.0
     @State private var soundVolume: Double = 0.8
     @Environment(\.dismiss) private var dismiss
@@ -21,6 +22,7 @@ struct PauseAlertView: View {
                 .ignoresSafeArea()
                 .onTapGesture {
                     isPresented = false
+                    gameScene.isPaused = false // Снимаем с паузы
                 }
             
             // Панель паузы
@@ -80,6 +82,7 @@ struct PauseAlertView: View {
                     // Кнопка продолжить
                     Button(action: {
                         isPresented = false
+                        gameScene.isPaused = false // Снимаем с паузы
                     }) {
                         Image("continue_button")
                             .resizable()
@@ -101,5 +104,5 @@ struct PauseAlertView: View {
 }
 
 #Preview {
-    PauseAlertView(isPresented: .constant(true))
+    PauseAlertView(isPresented: .constant(true), gameScene: GameScene(size: .zero))
 }
