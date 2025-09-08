@@ -4,6 +4,7 @@ import Combine
 
 struct PhysicsCategory {
     static let none: UInt32 = 0
+    static let wall: UInt32 = 0b10000
     static let lightning: UInt32 = 0b1 // 1
     static let friendlyNPC: UInt32 = 0b10 // 2
     static let scoreNPC: UInt32 = 0b100 // 4
@@ -36,8 +37,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     private var lastDifficultyIncrease: TimeInterval = 0
     private var timeSinceLastSpawn: TimeInterval = 0
     
-    private var spawnInterval: TimeInterval = 2.5
-    private var moveDurationRange: ClosedRange<TimeInterval> = 10.0...14.0
+    private var spawnInterval: TimeInterval = 0.8
+    private var moveDurationRange: ClosedRange<TimeInterval> = 6.0...9.0
     
     override init(size: CGSize) {
         super.init(size: size)
@@ -55,6 +56,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         // Назначаем делегата для обработки контактов
         physicsWorld.contactDelegate = self
+        physicsWorld.gravity = .zero
         
         // Добавление фонового изображения
         let background = SKSpriteNode(imageNamed: "game_bg")
@@ -75,6 +77,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         // Удаляем старый SKAction спавнер
         // run(SKAction.repeatForever(...))
+
+        // Добавляем боковые стены для отскоков молнии
+        addSideWalls()
     }
     
     override func update(_ currentTime: TimeInterval) {
@@ -106,6 +111,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         if currentTime - timeSinceLastSpawn > spawnInterval {
             timeSinceLastSpawn = currentTime
             spawnNPC()
+            // Начальный буст спавна в первые секунды
+            if currentTime - gameTime < 3 {
+                spawnNPC()
+            }
         }
     }
     
@@ -147,7 +156,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard isAiming, let touch = touches.first else { return }
-        let location = touch.location(in: self)
+            let location = touch.location(in: self)
         
         // Обновляем конечную точку и перерисовываем траекторию
         if trajectoryPoints.count > 1 {
@@ -285,29 +294,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         lightning.zPosition = 15
         
         // Настройка физического тела молнии
-        lightning.physicsBody = SKPhysicsBody(rectangleOf: lightning.size)
+        lightning.physicsBody = SKPhysicsBody(circleOfRadius: max(lightning.size.width, lightning.size.height) / 2)
         lightning.physicsBody?.isDynamic = true
         lightning.physicsBody?.affectedByGravity = false
+        lightning.physicsBody?.usesPreciseCollisionDetection = true
+        lightning.physicsBody?.restitution = 1.0
+        lightning.physicsBody?.friction = 0.0
+        lightning.physicsBody?.linearDamping = 0.0
+        lightning.physicsBody?.angularDamping = 0.0
+        lightning.physicsBody?.allowsRotation = false
         lightning.physicsBody?.categoryBitMask = PhysicsCategory.lightning
         lightning.physicsBody?.contactTestBitMask = PhysicsCategory.friendlyNPC | PhysicsCategory.scoreNPC | PhysicsCategory.coinNPC
-        lightning.physicsBody?.collisionBitMask = PhysicsCategory.none
+        lightning.physicsBody?.collisionBitMask = PhysicsCategory.wall
         
-        // Расчет направления и угла
+        // Расчет направления и установка скорости
         let dx = end.x - start.x
         let dy = end.y - start.y
         let angle = atan2(dy, dx)
-        lightning.zRotation = angle - .pi / 2 // Корректировка, если спрайт смотрит вверх
-        
-        // Создаем действие полета
-        let distance: CGFloat = 2000 // Лететь далеко за экран
-        let destination = CGPoint(x: start.x + cos(angle) * distance, y: start.y + sin(angle) * distance)
-        
-        let moveAction = SKAction.move(to: destination, duration: 2.0)
-        let removeAction = SKAction.removeFromParent()
-        
-        lightning.run(SKAction.sequence([moveAction, removeAction]))
-        
+        lightning.zRotation = angle - .pi / 2
+        let speed: CGFloat = 900.0
+        let velocity = CGVector(dx: cos(angle) * speed, dy: sin(angle) * speed)
         addChild(lightning)
+        lightning.physicsBody?.velocity = velocity
+        
+        // Автоудаление через 2 сек, чтобы не висела бесконечно
+        lightning.run(SKAction.sequence([SKAction.wait(forDuration: 2.0), SKAction.removeFromParent()]))
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -374,6 +385,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         saveGameStats()
     }
     
+
+    private func addSideWalls() {
+        // Remove existing walls
+        childNode(withName: "leftWall")?.removeFromParent()
+        childNode(withName: "rightWall")?.removeFromParent()
+        // Left wall
+        let leftWall = SKNode()
+        leftWall.name = "leftWall"
+        leftWall.physicsBody = SKPhysicsBody(edgeFrom: CGPoint(x: frame.minX, y: frame.minY),
+                                             to: CGPoint(x: frame.minX, y: frame.maxY))
+        leftWall.physicsBody?.isDynamic = false
+        leftWall.physicsBody?.categoryBitMask = PhysicsCategory.wall
+        addChild(leftWall)
+        // Right wall
+        let rightWall = SKNode()
+        rightWall.name = "rightWall"
+        rightWall.physicsBody = SKPhysicsBody(edgeFrom: CGPoint(x: frame.maxX, y: frame.minY),
+                                              to: CGPoint(x: frame.maxX, y: frame.maxY))
+        rightWall.physicsBody?.isDynamic = false
+        rightWall.physicsBody?.categoryBitMask = PhysicsCategory.wall
+        addChild(rightWall)
+    }
+
     func updateSize(newSize: CGSize) {
         self.size = newSize
         
@@ -391,6 +425,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         // Добавляем Зевса
         setupZeus()
+
+        // Переинициализируем стены после изменения размера
+        addSideWalls()
     }
 
     func restart(with size: CGSize) {
